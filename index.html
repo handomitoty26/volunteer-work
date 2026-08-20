@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>기숙사 봉사활동·캠페인 신청</title>
 <link rel="manifest" href="manifest.json">
+<script src="config.js"></script>
 <link rel="icon" href="icons/icon-192.png">
 <style>
 /* =========================================================
@@ -129,6 +130,18 @@ body{
 .badge.low{background:#fff7ed; color:#c2410c;}
 .badge.full{background:#fef2f2; color:#b91c1c;}
 .badge.pt{background:#eef2ff; color:#4338ca;}
+.badge.own{background:#eef2ff; color:#4338ca;}
+.badge.clash{background:#f5f3ff; color:#6d28d9;}
+.act .why{
+  margin-top:8px; font-size:12.5px; font-weight:700; color:#6d28d9;
+  background:#f5f3ff; border-radius:8px; padding:7px 10px; line-height:1.5;
+}
+.act .why.own{color:#4338ca; background:#eef2ff;}
+.mylist{
+  background:#f8fafc; border:1.5px solid var(--line); border-radius:12px;
+  padding:11px 13px; margin-bottom:11px; font-size:13px; font-weight:700; color:var(--ink2); line-height:1.6;
+}
+.mylist .h{font-size:11.5px; color:var(--ink3); font-weight:800; margin-bottom:3px;}
 .meta{display:flex; flex-direction:column; gap:5px;}
 .meta div{font-size:13.5px; color:var(--ink2); font-weight:600; display:flex; gap:7px; align-items:flex-start;}
 .meta .ic{width:17px; flex:0 0 auto; text-align:center; opacity:.75;}
@@ -245,9 +258,10 @@ body{
   <div id="view-setup" class="card first hidden">
     <div class="step"><span class="n">!</span><span class="t">서버 주소 설정이 필요합니다</span></div>
     <div class="err">
-      이 파일의 <b>API_URL</b> 값이 아직 비어 있습니다.<br>
-      README.md 의 “1단계 서버 만들기”를 따라 Apps Script 웹앱 주소를 받은 뒤,
-      index.html 과 admin.html 맨 위 <b>API_URL</b> 에 붙여넣고 다시 올려주세요.
+      <b>config.js</b> 파일에 서버 주소가 아직 없습니다.<br><br>
+      config.js 를 메모장으로 열어 <b>BONGSA_API</b> 의 따옴표 사이에
+      Apps Script 웹앱 주소를 붙여넣고 다시 올려주세요.<br><br>
+      자세한 방법은 <b>설치 매뉴얼 2부</b>를 참고하세요.
     </div>
   </div>
 
@@ -328,9 +342,10 @@ body{
       </div>
     </div>
     <div class="card">
+      <div id="done-more" style="font-size:13.5px; color:var(--ink3); font-weight:700; text-align:center; margin-bottom:12px;"></div>
       <button type="button" class="btn primary" onclick="shareTicket()">신청 내용 저장 · 공유하기</button>
-      <button type="button" class="btn ghost sm" style="margin-top:9px" onclick="backToForm()">처음 화면으로</button>
-      <button type="button" class="btn danger sm" style="margin-top:9px" onclick="cancelFromDone()">신청 취소하기</button>
+      <button type="button" class="btn ghost sm" id="btn-more" style="margin-top:9px" onclick="backToForm()">처음 화면으로</button>
+      <button type="button" class="btn danger sm" style="margin-top:9px" onclick="cancelFromDone()">이 신청 취소하기</button>
     </div>
   </div>
 
@@ -363,11 +378,10 @@ body{
 
 <script>
 /* =========================================================
-   ▼▼▼ 여기에 Apps Script 웹앱 주소를 붙여넣으세요 ▼▼▼
-   (README.md 1단계 참고 · https://script.google.com/macros/s/...../exec)
+   서버 주소는 config.js 파일에 들어 있습니다.
+   이 파일이 아니라 config.js 를 고치세요.
    ========================================================= */
-var API_URL = "https://script.google.com/macros/s/AKfycbzRdwOgtgvndcP8Te3OYC3JgtekPCilaxvWOL4V8r9WjXRjUk55Yhx75WcCYLs72nbX/exec";
-/* ========================================================= */
+var API_URL = (typeof BONGSA_API === 'string') ? BONGSA_API.trim() : "";
 
 // 테스트 편의: 주소창에 ?api=... 를 붙이면 그 주소를 사용하고 기기에 기억합니다.
 (function () {
@@ -383,7 +397,10 @@ var selDorm = '';
 var selDate = '';
 var selAct  = '';
 var lastTicket = null;
+var myApplies = [];        // 이 학생이 이미 신청해 둔 활동들
+var myLoadTimer = null;
 var DOW_CLASS = { '토': 'sat', '일': 'sun' };
+var DEFAULT_DURATION_MIN = 60;   // 종료 시각이 없는 활동은 60분으로 간주
 
 /* ---------------- 통신 (JSONP) ---------------- */
 function callApi(params) {
@@ -442,6 +459,55 @@ function fmtDate(d) {
   var m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return String(d);
   return Number(m[2]) + '월 ' + Number(m[3]) + '일';
+}
+
+/* ---------------- 시간 겹침 판정 (서버와 같은 규칙) ---------------- */
+function toMin(v) {
+  var m = String(v == null ? '' : v).match(/(\d{1,2})\s*:\s*(\d{2})/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+}
+
+function actRange(a) {
+  var s = toMin(a.start);
+  if (s === null) return null;
+  var e = toMin(a.end);
+  if (e === null || e <= s) e = s + DEFAULT_DURATION_MIN;
+  return { s: s, e: e };
+}
+
+function timeOf(a) {
+  if (a.time) return a.time;
+  return a.start ? (a.start + (a.end ? ' ~ ' + a.end : '')) : '시간 미정';
+}
+
+function overlaps(a, b) {
+  if (!a || !b) return false;
+  if (String(a.date) !== String(b.date)) return false;
+  var ra = actRange(a), rb = actRange(b);
+  if (!ra || !rb) return true;   // 시간을 모르면 같은 날은 겹치는 것으로
+  return ra.s < rb.e && rb.s < ra.e;
+}
+
+/** 신청 내역 한 건을 시간 비교용으로 (time 문자열에서 시각을 뽑아둠) */
+function asAct(m) {
+  var t = String(m.time || '');
+  var pair = t.match(/(\d{1,2}:\d{2})\s*~\s*(\d{1,2}:\d{2})/);
+  var one = t.match(/(\d{1,2}:\d{2})/);
+  return {
+    date: m.date, name: m.actName, time: m.time,
+    start: pair ? pair[1] : (one ? one[1] : ''),
+    end: pair ? pair[2] : ''
+  };
+}
+
+/** 이 활동이 내 기존 신청과 겹치면 그 신청을 돌려줍니다 */
+function clashWith(a) {
+  for (var i = 0; i < myApplies.length; i++) {
+    var mine = asAct(myApplies[i]);
+    if (myApplies[i].actId === a.id) continue;
+    if (overlaps(a, mine)) return myApplies[i];
+  }
+  return null;
 }
 
 /* ---------------- 시작 ---------------- */
@@ -533,6 +599,27 @@ function onWhoInput() {
     localStorage.setItem('bongsa_name', $('in-name').value);
   } catch (e) {}
   refreshSubmit();
+  scheduleMyLoad();
+}
+
+/** 학번·이름이 갖춰지면 잠시 뒤 내 신청 내역을 불러옵니다 */
+function scheduleMyLoad() {
+  clearTimeout(myLoadTimer);
+  myLoadTimer = setTimeout(loadMyApplies, 700);
+}
+
+function loadMyApplies() {
+  var sid = ($('in-sid').value || '').trim();
+  var name = ($('in-name').value || '').trim();
+  if (!/^\d{4,6}$/.test(sid) || name.length < 2) {
+    if (myApplies.length) { myApplies = []; renderActs(); }
+    return;
+  }
+  callApi({ action: 'mystatus', sid: sid, name: name }).then(function (res) {
+    myApplies = (res && res.ok && res.list) ? res.list : [];
+    renderActs();
+    refreshSubmit();
+  }).catch(function () {});
 }
 
 function restoreMe() {
@@ -545,6 +632,7 @@ function restoreMe() {
     if (n) $('in-name').value = n;
   } catch (e) {}
   refreshSubmit();
+  loadMyApplies();
 }
 
 /* ---------------- 3단계 : 날짜 ---------------- */
@@ -608,17 +696,47 @@ function renderActs() {
     return;
   }
   var html = '';
+
+  // 이미 신청해 둔 활동이 있으면 위에 요약해서 보여줍니다
+  if (myApplies.length) {
+    var lines = '';
+    for (var m = 0; m < myApplies.length; m++) {
+      var q = myApplies[m];
+      lines += '· ' + escapeHtml(q.actName) + ' — ' + escapeHtml(fmtDate(q.date)) +
+               '(' + escapeHtml(q.dow) + ') ' + escapeHtml(timeOf(asAct(q))) + '<br>';
+    }
+    html += '<div class="mylist"><div class="h">내가 이미 신청한 활동 ' + myApplies.length + '건</div>' +
+            lines.replace(/<br>$/, '') + '</div>';
+  }
+
   for (var k = 0; k < list.length; k++) {
     var a = list[k];
     var full = (a.left === 0);
-    var badge = '';
-    if (a.left < 0) badge = '<span class="badge">신청 ' + a.applied + '명</span>';
-    else if (full) badge = '<span class="badge full">마감</span>';
-    else if (a.left <= 3) badge = '<span class="badge low">' + a.left + '자리 남음</span>';
-    else badge = '<span class="badge ok">잔여 ' + a.left + '명</span>';
+    var already = false;
+    for (var z = 0; z < myApplies.length; z++) if (myApplies[z].actId === a.id) already = true;
+    var clash = already ? null : clashWith(a);
+    var off = full || already || !!clash;
 
-    html += '<button type="button" class="act' + (full ? ' full' : '') + (selAct === a.id ? ' on' : '') + '" ' +
-            'id="act-' + escapeHtml(a.id) + '" ' + (full ? 'disabled' : 'onclick="pickAct(\'' + escapeHtml(a.id) + '\')"') + '>' +
+    var badge, why = '';
+    if (already) {
+      badge = '<span class="badge own">신청함</span>';
+      why = '<div class="why own">이미 신청한 활동입니다.</div>';
+    } else if (clash) {
+      badge = '<span class="badge clash">시간 겹침</span>';
+      why = '<div class="why">「' + escapeHtml(clash.actName) + '」(' + escapeHtml(timeOf(asAct(clash))) +
+            ')와 시간이 겹쳐 신청할 수 없습니다.</div>';
+    } else if (full) {
+      badge = '<span class="badge full">마감</span>';
+    } else if (a.left < 0) {
+      badge = '<span class="badge">신청 ' + a.applied + '명</span>';
+    } else if (a.left <= 3) {
+      badge = '<span class="badge low">' + a.left + '자리 남음</span>';
+    } else {
+      badge = '<span class="badge ok">잔여 ' + a.left + '명</span>';
+    }
+
+    html += '<button type="button" class="act' + (off ? ' full' : '') + (selAct === a.id ? ' on' : '') + '" ' +
+            'id="act-' + escapeHtml(a.id) + '" ' + (off ? 'disabled' : 'onclick="pickAct(\'' + escapeHtml(a.id) + '\')"') + '>' +
               '<div class="act-top">' +
                 '<div class="act-nm">' + escapeHtml(a.name) + '</div>' + badge +
               '</div>' +
@@ -628,9 +746,16 @@ function renderActs() {
                 (a.point !== '' ? '<div><span class="ic">⭐</span><span>상점 <b>' + escapeHtml(a.point) + '점</b></span></div>' : '') +
               '</div>' +
               (a.note ? '<div class="act-note">' + escapeHtml(a.note) + '</div>' : '') +
+              why +
             '</button>';
   }
   box.innerHTML = html;
+
+  // 고른 활동이 그새 막혔다면 선택을 풀어줍니다
+  if (selAct) {
+    var still = document.getElementById('act-' + selAct);
+    if (!still || still.disabled) { selAct = ''; refreshSubmit(); }
+  }
 }
 
 function pickAct(id) {
@@ -683,6 +808,7 @@ function submitApply() {
     }
     lastTicket = res.apply;
     showDone(res.apply);
+    loadMyApplies();
   }).catch(function (e) {
     setErr(e.message);
     btn.textContent = '다시 신청하기';
@@ -714,6 +840,16 @@ function showDone(t) {
             '<div class="v' + (rows[i][2] ? ' hi' : '') + '">' + escapeHtml(rows[i][1]) + '</div></div>';
   }
   $('done-body').innerHTML = html;
+
+  // 더 신청할 수 있는지 안내
+  var per = CONF ? CONF.perStudent : 0;
+  var done = myApplies.length + 1;
+  var more = (per === 0) || (done < per);
+  $('done-more').innerHTML = more
+    ? '시간이 겹치지 않는 다른 활동도 신청할 수 있습니다.'
+    : '신청 가능한 개수를 모두 채웠습니다.';
+  $('btn-more').textContent = more ? '다른 활동 더 신청하기' : '처음 화면으로';
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -757,6 +893,7 @@ function backToForm() {
   selAct = '';
   $('chk-ok').checked = false;
   refreshData();
+  loadMyApplies();
   refreshSubmit();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -817,6 +954,7 @@ function cancelMine(sid, name, actId) {
     toast('취소되었습니다.');
     loadMine();
     refreshData();
+    loadMyApplies();
   }).catch(function (e) { toast(e.message); });
 }
 

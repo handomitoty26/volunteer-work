@@ -11,6 +11,7 @@
 <meta name="description" content="기숙사 봉사활동 신청 현황과 출석을 관리하는 사감 선생님 전용 화면">
 <title>봉사활동 신청 관리 (사감 선생님용)</title>
 <link rel="manifest" href="manifest-admin.json">
+<script src="config.js"></script>
 <link rel="icon" href="icons/admin-192.png">
 <link rel="apple-touch-icon" href="icons/admin-192.png">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -215,7 +216,11 @@ td input:focus, td select:focus{border-color:var(--blue);}
     <div class="fld">
       <label for="api-in">서버 주소 (Apps Script 웹앱 URL)</label>
       <input type="text" id="api-in" placeholder="https://script.google.com/macros/s/..../exec">
-      <div class="fh">파일에 저장된 주소가 없을 때만 입력하면 됩니다. 이 기기에 기억됩니다.</div>
+      <div class="fh">
+        보통은 비워두시면 됩니다. 이 칸이 비어 있고 접속이 안 된다면
+        <b>config.js</b> 에 서버 주소가 들어 있는지 확인하세요.
+        여기에 직접 넣으면 <b>이 기기에서만</b> 기억됩니다.
+      </div>
     </div>
   </div>
 
@@ -426,11 +431,10 @@ td input:focus, td select:focus{border-color:var(--blue);}
 
 <script>
 /* =========================================================
-   ▼▼▼ 여기에 Apps Script 웹앱 주소를 붙여넣으세요 ▼▼▼
-   (index.html 과 똑같은 주소입니다)
+   서버 주소는 config.js 파일에 들어 있습니다.
+   이 파일이 아니라 config.js 를 고치세요.
    ========================================================= */
-var API_URL = "";
-/* ========================================================= */
+var API_URL = (typeof BONGSA_API === 'string') ? BONGSA_API.trim() : "";
 
 (function () {
   try {
