@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>기숙사 봉사활동·캠페인 신청</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+/* =========================================================
+   기숙사 봉사활동·캠페인 신청 — 학생용 (v1.0)
+   태하관(남)·서현관(여) 공통 / 모바일 우선 · 태블릿 대응
+   ========================================================= */
+:root{
+  --accent:#1d4ed8; --accent-soft:#eff6ff; --accent-line:#bfdbfe;
+  --ink:#0f172a; --ink2:#475569; --ink3:#94a3b8;
+  --line:#e2e8f0; --bg:#f1f5f9; --card:#ffffff;
+  --ok:#059669; --warn:#d97706; --bad:#dc2626;
+  --r:16px; --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--ink); min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',
+              'Noto Sans KR',system-ui,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px 48px;}
+
+/* ---------- 헤더 ---------- */
+.hero{
+  background:linear-gradient(160deg,var(--accent) 0%,#0f172a 130%);
+  color:#fff; padding:26px 20px 30px; margin:0 -16px 0;
+  border-radius:0 0 26px 26px; box-shadow:0 10px 30px rgba(15,23,42,.18);
+  transition:background .35s;
+}
+.hero h1{margin:0; font-size:22px; font-weight:800; letter-spacing:-.4px; line-height:1.35;}
+.hero .round{
+  display:inline-block; margin-bottom:10px; font-size:13px; font-weight:700;
+  background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.28);
+  padding:5px 12px; border-radius:999px; backdrop-filter:blur(4px);
+}
+.hero .sub{margin-top:8px; font-size:13px; opacity:.85; font-weight:500;}
+
+/* ---------- 카드 ---------- */
+.card{
+  background:var(--card); border-radius:var(--r); box-shadow:var(--shadow);
+  padding:18px; margin-top:14px; border:1px solid rgba(226,232,240,.9);
+}
+.card.first{margin-top:-14px; position:relative; z-index:2;}
+.step{display:flex; align-items:center; gap:9px; margin-bottom:14px;}
+.step .n{
+  flex:0 0 auto; width:26px; height:26px; border-radius:9px; background:var(--accent);
+  color:#fff; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  transition:background .3s;
+}
+.step .t{font-size:16px; font-weight:800; letter-spacing:-.3px;}
+.step .hint{margin-left:auto; font-size:12px; color:var(--ink3); font-weight:600;}
+
+/* ---------- 안내문 ---------- */
+.notice{
+  background:#fffbeb; border:1px solid #fde68a; border-left:4px solid #f59e0b;
+  border-radius:12px; padding:14px 16px; font-size:14px; color:#78350f;
+  white-space:pre-line; line-height:1.6; font-weight:600;
+}
+.closed{
+  background:#fef2f2; border:1px solid #fecaca; border-left:4px solid #dc2626;
+  border-radius:12px; padding:14px 16px; font-size:14px; color:#7f1d1d; font-weight:700;
+}
+
+/* ---------- 기숙사 선택 ---------- */
+.dorms{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.dorm{
+  border:2px solid var(--line); background:#fff; border-radius:14px; padding:16px 10px;
+  text-align:center; cursor:pointer; font-family:inherit; transition:.18s;
+}
+.dorm .em{font-size:26px; line-height:1; display:block; margin-bottom:6px;}
+.dorm .nm{display:block; font-size:17px; font-weight:800; color:var(--ink); letter-spacing:-.3px;}
+.dorm .ds{display:block; font-size:12px; color:var(--ink3); font-weight:600; margin-top:2px;}
+.dorm:active{transform:scale(.97);}
+.dorm.on.male{border-color:#1d4ed8; background:#eff6ff;}
+.dorm.on.female{border-color:#be185d; background:#fdf2f8;}
+
+/* ---------- 입력 ---------- */
+.row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.fld label{display:block; font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:6px;}
+.fld input{
+  width:100%; padding:14px 14px; border:1.5px solid var(--line); border-radius:12px;
+  font-size:17px; font-family:inherit; font-weight:700; background:#f8fafc; color:var(--ink);
+  outline:none; transition:.15s;
+}
+.fld input:focus{border-color:var(--accent); background:#fff; box-shadow:0 0 0 3px var(--accent-soft);}
+.fld input::placeholder{font-weight:500; color:#cbd5e1;}
+
+/* ---------- 날짜 칩 ---------- */
+.dates{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.dchip{
+  border:2px solid var(--line); background:#fff; border-radius:14px; padding:14px 8px;
+  text-align:center; cursor:pointer; font-family:inherit; transition:.18s;
+}
+.dchip .md{font-size:18px; font-weight:800; color:var(--ink); letter-spacing:-.4px;}
+.dchip .dw{font-size:13px; font-weight:700; margin-top:2px;}
+.dchip .cn{font-size:11px; color:var(--ink3); font-weight:600; margin-top:4px;}
+.dchip.on{border-color:var(--accent); background:var(--accent-soft);}
+.dchip:active{transform:scale(.97);}
+.dw.sat{color:#2563eb;} .dw.sun{color:#dc2626;} .dw.etc{color:var(--ink2);}
+
+/* ---------- 활동 카드 ---------- */
+.acts{display:flex; flex-direction:column; gap:10px;}
+.act{
+  border:2px solid var(--line); background:#fff; border-radius:14px; padding:14px 15px;
+  cursor:pointer; font-family:inherit; text-align:left; width:100%; transition:.18s; position:relative;
+}
+.act:active{transform:scale(.985);}
+.act.on{border-color:var(--accent); background:var(--accent-soft);}
+.act.full{opacity:.55; cursor:not-allowed; background:#f8fafc;}
+.act-top{display:flex; align-items:flex-start; gap:8px; margin-bottom:9px;}
+.act-nm{font-size:16px; font-weight:800; color:var(--ink); letter-spacing:-.3px; flex:1; line-height:1.35;}
+.badge{
+  flex:0 0 auto; font-size:11px; font-weight:800; padding:4px 9px; border-radius:999px;
+  background:#f1f5f9; color:var(--ink2); white-space:nowrap;
+}
+.badge.ok{background:#ecfdf5; color:#047857;}
+.badge.low{background:#fff7ed; color:#c2410c;}
+.badge.full{background:#fef2f2; color:#b91c1c;}
+.badge.pt{background:#eef2ff; color:#4338ca;}
+.meta{display:flex; flex-direction:column; gap:5px;}
+.meta div{font-size:13.5px; color:var(--ink2); font-weight:600; display:flex; gap:7px; align-items:flex-start;}
+.meta .ic{width:17px; flex:0 0 auto; text-align:center; opacity:.75;}
+.act-note{
+  margin-top:9px; padding-top:9px; border-top:1px dashed var(--line);
+  font-size:12.5px; color:var(--ink3); font-weight:600; line-height:1.5;
+}
+
+/* ---------- 확인 + 버튼 ---------- */
+.confirm{
+  display:flex; gap:11px; align-items:flex-start; background:#f8fafc;
+  border:1.5px solid var(--line); border-radius:12px; padding:14px; cursor:pointer;
+}
+.confirm input{width:22px; height:22px; margin:1px 0 0; flex:0 0 auto; accent-color:var(--accent);}
+.confirm span{font-size:13.5px; color:var(--ink2); font-weight:600; line-height:1.5;}
+.btn{
+  width:100%; padding:17px; border:none; border-radius:14px; font-family:inherit;
+  font-size:17px; font-weight:800; cursor:pointer; letter-spacing:-.3px; transition:.15s;
+}
+.btn.primary{background:var(--accent); color:#fff; box-shadow:0 6px 18px rgba(29,78,216,.28);}
+.btn.primary:disabled{background:#cbd5e1; color:#f8fafc; box-shadow:none; cursor:not-allowed;}
+.btn.primary:not(:disabled):active{transform:translateY(1px);}
+.btn.ghost{background:#fff; color:var(--ink2); border:1.5px solid var(--line);}
+.btn.danger{background:#fff; color:var(--bad); border:1.5px solid #fecaca;}
+.btn.sm{padding:12px; font-size:14px; border-radius:11px;}
+
+.foot{text-align:center; margin-top:20px; font-size:12px; color:var(--ink3); font-weight:600; line-height:1.7;}
+.foot a{color:var(--ink3);}
+
+/* ---------- 완료증 ---------- */
+.ticket{
+  background:linear-gradient(160deg,#ffffff,#f8fafc);
+  border:2px solid var(--accent); border-radius:18px; padding:0; overflow:hidden;
+  box-shadow:0 10px 30px rgba(15,23,42,.1);
+}
+.ticket .th{background:var(--accent); color:#fff; padding:16px 18px; text-align:center;}
+.ticket .th .big{font-size:19px; font-weight:800; letter-spacing:-.3px;}
+.ticket .th .sm{font-size:12.5px; opacity:.9; margin-top:3px; font-weight:600;}
+.ticket .tb{padding:16px 18px;}
+.tk-row{display:flex; padding:9px 0; border-bottom:1px dashed var(--line); font-size:14px;}
+.tk-row:last-child{border-bottom:none;}
+.tk-row .k{flex:0 0 74px; color:var(--ink3); font-weight:700; font-size:13px;}
+.tk-row .v{flex:1; color:var(--ink); font-weight:700;}
+.tk-row .v.hi{color:var(--accent);}
+
+/* ---------- 모달 ---------- */
+.ov{
+  display:none; position:fixed; inset:0; background:rgba(15,23,42,.55);
+  z-index:100; align-items:flex-end; justify-content:center; backdrop-filter:blur(2px);
+}
+.ov.show{display:flex;}
+.sheet{
+  background:#fff; width:100%; max-width:640px; border-radius:22px 22px 0 0;
+  padding:20px 18px calc(24px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;
+  animation:up .22s ease-out;
+}
+@keyframes up{from{transform:translateY(40px); opacity:.4;} to{transform:none; opacity:1;}}
+.sheet h3{margin:0 0 4px; font-size:18px; font-weight:800; letter-spacing:-.3px;}
+.sheet .desc{font-size:13px; color:var(--ink3); font-weight:600; margin-bottom:16px;}
+.grab{width:38px; height:4px; background:#e2e8f0; border-radius:99px; margin:0 auto 14px;}
+
+.mine{border:1.5px solid var(--line); border-radius:13px; padding:13px 14px; margin-bottom:10px; background:#f8fafc;}
+.mine .mt{font-size:15px; font-weight:800; margin-bottom:6px;}
+.mine .mm{font-size:13px; color:var(--ink2); font-weight:600;}
+
+/* ---------- 상태 ---------- */
+.loading{text-align:center; padding:50px 20px; color:var(--ink3); font-weight:700; font-size:14px;}
+.spin{
+  width:26px; height:26px; border:3px solid #e2e8f0; border-top-color:var(--accent);
+  border-radius:50%; margin:0 auto 12px; animation:sp .7s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg);}}
+.err{
+  background:#fef2f2; border:1px solid #fecaca; color:#991b1b; border-radius:12px;
+  padding:14px; font-size:13.5px; font-weight:700; margin-top:12px; line-height:1.6;
+}
+.empty{text-align:center; padding:26px 14px; color:var(--ink3); font-size:13.5px; font-weight:600;}
+.hidden{display:none !important;}
+
+/* 토스트 */
+#toast{
+  position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+  background:#0f172a; color:#fff; padding:13px 20px; border-radius:12px; font-size:14px;
+  font-weight:700; z-index:200; opacity:0; pointer-events:none; transition:.25s; max-width:88%;
+  text-align:center; line-height:1.5; box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+@media (min-width:700px){
+  body{font-size:17px;}
+  .wrap{max-width:680px; padding-top:0;}
+  .hero{border-radius:0 0 30px 30px; padding:34px 26px 38px;}
+  .hero h1{font-size:26px;}
+  .card{padding:22px;}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero" id="hero">
+    <div class="round hidden" id="h-round"></div>
+    <h1 id="h-title">기숙사 봉사활동·캠페인 신청</h1>
+    <div class="sub" id="h-sub">잠시만 기다려 주세요…</div>
+  </div>
+
+  <!-- 로딩 -->
+  <div id="view-loading" class="card first">
+    <div class="loading"><div class="spin"></div>신청 정보를 불러오는 중입니다</div>
+  </div>
+
+  <!-- 설정 안내 (API 주소 미설정 시) -->
+  <div id="view-setup" class="card first hidden">
+    <div class="step"><span class="n">!</span><span class="t">서버 주소 설정이 필요합니다</span></div>
+    <div class="err">
+      이 파일의 <b>API_URL</b> 값이 아직 비어 있습니다.<br>
+      README.md 의 “1단계 서버 만들기”를 따라 Apps Script 웹앱 주소를 받은 뒤,
+      index.html 과 admin.html 맨 위 <b>API_URL</b> 에 붙여넣고 다시 올려주세요.
+    </div>
+  </div>
+
+  <!-- 신청 폼 -->
+  <div id="view-form" class="hidden">
+
+    <div class="card first" id="box-notice">
+      <div class="notice" id="notice-text"></div>
+    </div>
+
+    <div class="card hidden" id="box-closed">
+      <div class="closed" id="closed-text"></div>
+    </div>
+
+    <div class="card" id="box-dorm">
+      <div class="step"><span class="n">1</span><span class="t">기숙사</span></div>
+      <div class="dorms">
+        <button type="button" class="dorm male" id="dorm-m" onclick="pickDorm('태하관')">
+          <span class="em">🏢</span><span class="nm">태하관</span><span class="ds">남 기숙사</span>
+        </button>
+        <button type="button" class="dorm female" id="dorm-f" onclick="pickDorm('서현관')">
+          <span class="em">🏠</span><span class="nm">서현관</span><span class="ds">여 기숙사</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card" id="box-who">
+      <div class="step"><span class="n">2</span><span class="t">학번 · 이름</span></div>
+      <div class="row">
+        <div class="fld">
+          <label for="in-sid">학번</label>
+          <input type="tel" id="in-sid" inputmode="numeric" maxlength="6" placeholder="예) 1203" oninput="onWhoInput()">
+        </div>
+        <div class="fld">
+          <label for="in-name">이름</label>
+          <input type="text" id="in-name" maxlength="10" placeholder="예) 홍길동" oninput="onWhoInput()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="box-date">
+      <div class="step"><span class="n">3</span><span class="t">날짜 선택</span><span class="hint">1일 선택</span></div>
+      <div class="dates" id="date-list"></div>
+    </div>
+
+    <div class="card" id="box-act">
+      <div class="step"><span class="n">4</span><span class="t">활동 선택</span><span class="hint" id="act-hint">날짜를 먼저 선택</span></div>
+      <div class="acts" id="act-list">
+        <div class="empty">위에서 날짜를 먼저 선택해 주세요.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label class="confirm" for="chk-ok">
+        <input type="checkbox" id="chk-ok" onchange="refreshSubmit()">
+        <span id="chk-text">위 안내 사항을 확인했고, 신청 자격을 스스로 확인했습니다. 신청한 활동에 반드시 참여하겠습니다.</span>
+      </label>
+      <button type="button" class="btn primary" id="btn-submit" style="margin-top:14px" disabled onclick="submitApply()">
+        신청하기
+      </button>
+      <button type="button" class="btn ghost sm" style="margin-top:9px" onclick="openMine()">
+        내 신청 내역 확인 · 취소
+      </button>
+      <div id="form-err"></div>
+    </div>
+
+  </div>
+
+  <!-- 완료 -->
+  <div id="view-done" class="hidden">
+    <div class="card first" style="border:none; box-shadow:none; background:transparent; padding:0;">
+      <div class="ticket">
+        <div class="th">
+          <div class="big">✓ 신청이 완료되었습니다</div>
+          <div class="sm" id="done-sub"></div>
+        </div>
+        <div class="tb" id="done-body"></div>
+      </div>
+    </div>
+    <div class="card">
+      <button type="button" class="btn primary" onclick="shareTicket()">신청 내용 저장 · 공유하기</button>
+      <button type="button" class="btn ghost sm" style="margin-top:9px" onclick="backToForm()">처음 화면으로</button>
+      <button type="button" class="btn danger sm" style="margin-top:9px" onclick="cancelFromDone()">신청 취소하기</button>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<!-- 내 신청 내역 -->
+<div class="ov" id="ov-mine">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>내 신청 내역</h3>
+    <div class="desc">본인 확인을 위해 학번과 이름을 입력해 주세요.</div>
+    <div class="row">
+      <div class="fld">
+        <label for="m-sid">학번</label>
+        <input type="tel" id="m-sid" inputmode="numeric" maxlength="6" placeholder="예) 1203">
+      </div>
+      <div class="fld">
+        <label for="m-name">이름</label>
+        <input type="text" id="m-name" maxlength="10" placeholder="예) 홍길동">
+      </div>
+    </div>
+    <button type="button" class="btn primary sm" style="margin-top:12px" onclick="loadMine()">조회하기</button>
+    <div id="mine-result" style="margin-top:14px"></div>
+    <button type="button" class="btn ghost sm" style="margin-top:12px" onclick="closeOv('ov-mine')">닫기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   ▼▼▼ 여기에 Apps Script 웹앱 주소를 붙여넣으세요 ▼▼▼
+   (README.md 1단계 참고 · https://script.google.com/macros/s/...../exec)
+   ========================================================= */
+var API_URL = "https://script.google.com/macros/s/AKfycbzRdwOgtgvndcP8Te3OYC3JgtekPCilaxvWOL4V8r9WjXRjUk55Yhx75WcCYLs72nbX/exec";
+/* ========================================================= */
+
+// 테스트 편의: 주소창에 ?api=... 를 붙이면 그 주소를 사용하고 기기에 기억합니다.
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('api');
+    if (q) { API_URL = q; localStorage.setItem('bongsa_api', q); }
+    else if (!API_URL) { API_URL = localStorage.getItem('bongsa_api') || ''; }
+  } catch (e) {}
+})();
+
+var CONF = null;          // 서버에서 받은 설정+활동
+var selDorm = '';
+var selDate = '';
+var selAct  = '';
+var lastTicket = null;
+var DOW_CLASS = { '토': 'sat', '일': 'sun' };
+
+/* ---------------- 통신 (JSONP) ---------------- */
+function callApi(params) {
+  return new Promise(function (resolve, reject) {
+    if (!API_URL) { reject(new Error('서버 주소가 설정되지 않았습니다.')); return; }
+    var cbName = 'jsonpCb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    var qs = ['callback=' + cbName, '_=' + Date.now()];
+    for (var k in params) {
+      if (params[k] === undefined || params[k] === null) continue;
+      qs.push(encodeURIComponent(k) + '=' + encodeURIComponent(params[k]));
+    }
+    var script = document.createElement('script');
+    var timer = setTimeout(function () { cleanup(); reject(new Error('서버 응답이 없습니다. 잠시 후 다시 시도해 주세요.')); }, 20000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function (data) { cleanup(); resolve(data); };
+    script.onerror = function () { cleanup(); reject(new Error('네트워크 연결을 확인해 주세요.')); };
+    script.src = API_URL + (API_URL.indexOf('?') >= 0 ? '&' : '?') + qs.join('&');
+    document.body.appendChild(script);
+  });
+}
+
+/* ---------------- 화면 도우미 ---------------- */
+function $(id) { return document.getElementById(id); }
+
+function show(id) { var el = $(id); if (el) el.classList.remove('hidden'); }
+function hide(id) { var el = $(id); if (el) el.classList.add('hidden'); }
+
+function toast(msg) {
+  var t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+}
+
+function showOv(id) { var el = $(id); if (el) el.classList.add('show'); }
+function closeOv(id) { var el = $(id); if (el) el.classList.remove('show'); }
+
+function setErr(msg) {
+  var box = $('form-err');
+  box.innerHTML = msg ? '<div class="err">' + escapeHtml(msg) + '</div>' : '';
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function fmtDate(d) {
+  var m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(d);
+  return Number(m[2]) + '월 ' + Number(m[3]) + '일';
+}
+
+/* ---------------- 시작 ---------------- */
+window.addEventListener('load', function () {
+  if (!API_URL) { hide('view-loading'); show('view-setup'); $('h-sub').textContent = '설정 필요'; return; }
+  loadConfig();
+});
+
+function loadConfig() {
+  callApi({ action: 'config' }).then(function (res) {
+    if (!res || !res.ok) { throw new Error((res && res.msg) || '정보를 불러오지 못했습니다.'); }
+    CONF = res;
+    renderHeader();
+    renderNotice();
+    renderDates();
+    hide('view-loading');
+    show('view-form');
+    renderFoot();
+    restoreMe();
+  }).catch(function (e) {
+    hide('view-loading');
+    show('view-form');
+    hide('box-dorm'); hide('box-who'); hide('box-date'); hide('box-act');
+    $('notice-text').textContent = '';
+    setErr(e.message + '\n\n주소가 올바른지, 인터넷이 연결되어 있는지 확인해 주세요.');
+    $('h-sub').textContent = '연결 실패';
+  });
+}
+
+function renderHeader() {
+  $('h-title').textContent = CONF.title || '기숙사 봉사활동·캠페인 신청';
+  if (CONF.round) { $('h-round').textContent = CONF.round; show('h-round'); }
+  var sub = '';
+  if (CONF.endAt) sub = '신청 마감 : ' + CONF.endAt;
+  else if (CONF.dates && CONF.dates.length) sub = '활동일 ' + CONF.dates.length + '일 중 하루를 선택하세요';
+  $('h-sub').textContent = sub || '아래 순서대로 신청해 주세요';
+}
+
+function renderNotice() {
+  if (CONF.notice) { $('notice-text').textContent = CONF.notice; }
+  else { hide('box-notice'); }
+
+  if (!CONF.open) {
+    $('closed-text').textContent = CONF.closedMsg || '현재 신청을 받지 않습니다.';
+    show('box-closed');
+    $('btn-submit').disabled = true;
+  }
+}
+
+function renderFoot() {
+  var txt = [];
+  if (CONF.contact) txt.push('문의 : ' + CONF.contact);
+  txt.push('신청 후에도 마감 전까지 취소할 수 있습니다.');
+  $('foot').innerHTML = txt.map(escapeHtml).join('<br>');
+}
+
+/* ---------------- 1단계 : 기숙사 ---------------- */
+function pickDorm(d) {
+  selDorm = d;
+  $('dorm-m').classList.toggle('on', d === '태하관');
+  $('dorm-f').classList.toggle('on', d === '서현관');
+  applyTheme(d);
+  try { localStorage.setItem('bongsa_dorm', d); } catch (e) {}
+  renderActs();
+  refreshSubmit();
+}
+
+function applyTheme(d) {
+  var root = document.documentElement.style;
+  if (d === '서현관') {
+    root.setProperty('--accent', '#be185d');
+    root.setProperty('--accent-soft', '#fdf2f8');
+    root.setProperty('--accent-line', '#fbcfe8');
+    document.querySelector('meta[name=theme-color]').setAttribute('content', '#831843');
+  } else {
+    root.setProperty('--accent', '#1d4ed8');
+    root.setProperty('--accent-soft', '#eff6ff');
+    root.setProperty('--accent-line', '#bfdbfe');
+    document.querySelector('meta[name=theme-color]').setAttribute('content', '#1e3a8a');
+  }
+}
+
+/* ---------------- 2단계 : 학번·이름 ---------------- */
+function onWhoInput() {
+  var sid = $('in-sid');
+  sid.value = sid.value.replace(/[^0-9]/g, '');
+  try {
+    localStorage.setItem('bongsa_sid', sid.value);
+    localStorage.setItem('bongsa_name', $('in-name').value);
+  } catch (e) {}
+  refreshSubmit();
+}
+
+function restoreMe() {
+  try {
+    var d = localStorage.getItem('bongsa_dorm');
+    if (d) pickDorm(d);
+    var s = localStorage.getItem('bongsa_sid');
+    if (s) $('in-sid').value = s;
+    var n = localStorage.getItem('bongsa_name');
+    if (n) $('in-name').value = n;
+  } catch (e) {}
+  refreshSubmit();
+}
+
+/* ---------------- 3단계 : 날짜 ---------------- */
+function renderDates() {
+  var box = $('date-list');
+  var ds = CONF.dates || [];
+  if (!ds.length) {
+    box.innerHTML = '<div class="empty">아직 등록된 활동이 없습니다.<br>사감 선생님께 문의해 주세요.</div>';
+    box.style.gridTemplateColumns = '1fr';
+    return;
+  }
+  box.style.gridTemplateColumns = ds.length === 1 ? '1fr' : (ds.length >= 3 ? 'repeat(3,1fr)' : '1fr 1fr');
+  var html = '';
+  for (var i = 0; i < ds.length; i++) {
+    var d = ds[i];
+    var cnt = 0;
+    for (var j = 0; j < CONF.acts.length; j++) if (CONF.acts[j].date === d.date) cnt++;
+    var cls = DOW_CLASS[d.dow] || 'etc';
+    html += '<button type="button" class="dchip" id="dchip-' + i + '" onclick="pickDate(\'' + d.date + '\')">' +
+              '<div class="md">' + escapeHtml(fmtDate(d.date)) + '</div>' +
+              '<div class="dw ' + cls + '">' + escapeHtml(d.dow) + '요일</div>' +
+              '<div class="cn">활동 ' + cnt + '개</div>' +
+            '</button>';
+  }
+  box.innerHTML = html;
+}
+
+function pickDate(date) {
+  selDate = date;
+  selAct = '';
+  var chips = document.querySelectorAll('.dchip');
+  for (var i = 0; i < chips.length; i++) chips[i].classList.remove('on');
+  var ds = CONF.dates || [];
+  for (var j = 0; j < ds.length; j++) {
+    if (ds[j].date === date) { var el = $('dchip-' + j); if (el) el.classList.add('on'); }
+  }
+  renderActs();
+  refreshSubmit();
+  var box = $('box-act');
+  if (box) setTimeout(function () { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 120);
+}
+
+/* ---------------- 4단계 : 활동 ---------------- */
+function renderActs() {
+  var box = $('act-list');
+  if (!selDate) {
+    box.innerHTML = '<div class="empty">위에서 날짜를 먼저 선택해 주세요.</div>';
+    $('act-hint').textContent = '날짜를 먼저 선택';
+    return;
+  }
+  var list = [];
+  for (var i = 0; i < CONF.acts.length; i++) {
+    var a = CONF.acts[i];
+    if (a.date !== selDate) continue;
+    if (a.dorm !== '공통' && selDorm && a.dorm !== selDorm) continue;
+    list.push(a);
+  }
+  $('act-hint').textContent = list.length + '개 중 1개 선택';
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">이 날짜에 신청 가능한 활동이 없습니다.</div>';
+    return;
+  }
+  var html = '';
+  for (var k = 0; k < list.length; k++) {
+    var a = list[k];
+    var full = (a.left === 0);
+    var badge = '';
+    if (a.left < 0) badge = '<span class="badge">신청 ' + a.applied + '명</span>';
+    else if (full) badge = '<span class="badge full">마감</span>';
+    else if (a.left <= 3) badge = '<span class="badge low">' + a.left + '자리 남음</span>';
+    else badge = '<span class="badge ok">잔여 ' + a.left + '명</span>';
+
+    html += '<button type="button" class="act' + (full ? ' full' : '') + (selAct === a.id ? ' on' : '') + '" ' +
+            'id="act-' + escapeHtml(a.id) + '" ' + (full ? 'disabled' : 'onclick="pickAct(\'' + escapeHtml(a.id) + '\')"') + '>' +
+              '<div class="act-top">' +
+                '<div class="act-nm">' + escapeHtml(a.name) + '</div>' + badge +
+              '</div>' +
+              '<div class="meta">' +
+                '<div><span class="ic">🕘</span><span>' + (a.start ? escapeHtml(a.start) + (a.end ? ' ~ ' + escapeHtml(a.end) : '') : '시간 추후 안내') + '</span></div>' +
+                '<div><span class="ic">📍</span><span>' + escapeHtml(a.place || '장소 추후 안내') + '</span></div>' +
+                (a.point !== '' ? '<div><span class="ic">⭐</span><span>상점 <b>' + escapeHtml(a.point) + '점</b></span></div>' : '') +
+              '</div>' +
+              (a.note ? '<div class="act-note">' + escapeHtml(a.note) + '</div>' : '') +
+            '</button>';
+  }
+  box.innerHTML = html;
+}
+
+function pickAct(id) {
+  selAct = id;
+  var els = document.querySelectorAll('.act');
+  for (var i = 0; i < els.length; i++) els[i].classList.remove('on');
+  var el = $('act-' + id);
+  if (el) el.classList.add('on');
+  refreshSubmit();
+}
+
+/* ---------------- 신청 ---------------- */
+function refreshSubmit() {
+  var btn = $('btn-submit');
+  if (!CONF || !CONF.open) { btn.disabled = true; return; }
+  var sid = ($('in-sid').value || '').trim();
+  var name = ($('in-name').value || '').trim();
+  var ok = selDorm && /^\d{4,6}$/.test(sid) && name.length >= 2 && selDate && selAct && $('chk-ok').checked;
+  btn.disabled = !ok;
+  btn.textContent = ok ? '신청하기' : nextGuide(sid, name);
+}
+
+function nextGuide(sid, name) {
+  if (!selDorm) return '기숙사를 선택하세요';
+  if (!/^\d{4,6}$/.test(sid)) return '학번을 입력하세요';
+  if (name.length < 2) return '이름을 입력하세요';
+  if (!selDate) return '날짜를 선택하세요';
+  if (!selAct) return '활동을 선택하세요';
+  if (!$('chk-ok').checked) return '확인란에 체크하세요';
+  return '신청하기';
+}
+
+function submitApply() {
+  var btn = $('btn-submit');
+  btn.disabled = true;
+  btn.textContent = '신청 중…';
+  setErr('');
+  callApi({
+    action: 'apply', dorm: selDorm,
+    sid: ($('in-sid').value || '').trim(),
+    name: ($('in-name').value || '').trim(),
+    act: selAct
+  }).then(function (res) {
+    if (!res || !res.ok) {
+      setErr((res && res.msg) || '신청에 실패했습니다.');
+      btn.textContent = '다시 신청하기';
+      btn.disabled = false;
+      refreshData();
+      return;
+    }
+    lastTicket = res.apply;
+    showDone(res.apply);
+  }).catch(function (e) {
+    setErr(e.message);
+    btn.textContent = '다시 신청하기';
+    btn.disabled = false;
+  });
+}
+
+function refreshData() {
+  callApi({ action: 'config' }).then(function (res) {
+    if (res && res.ok) { CONF = res; renderActs(); }
+  }).catch(function () {});
+}
+
+function showDone(t) {
+  hide('view-form');
+  show('view-done');
+  $('done-sub').textContent = t.dorm + ' · ' + t.sid + ' ' + t.name;
+  var rows = [
+    ['활동', t.actName, 1],
+    ['날짜', fmtDate(t.date) + ' (' + t.dow + ')', 0],
+    ['시간', t.time, 0],
+    ['장소', t.place || '추후 안내', 0]
+  ];
+  if (t.point !== '' && t.point != null) rows.push(['상점', t.point + '점', 0]);
+  if (t.note) rows.push(['준비', t.note, 0]);
+  var html = '';
+  for (var i = 0; i < rows.length; i++) {
+    html += '<div class="tk-row"><div class="k">' + escapeHtml(rows[i][0]) + '</div>' +
+            '<div class="v' + (rows[i][2] ? ' hi' : '') + '">' + escapeHtml(rows[i][1]) + '</div></div>';
+  }
+  $('done-body').innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function ticketText() {
+  var t = lastTicket;
+  if (!t) return '';
+  return '[봉사활동 신청 완료]\n' +
+         t.dorm + ' ' + t.sid + ' ' + t.name + '\n' +
+         '· 활동 : ' + t.actName + '\n' +
+         '· 일시 : ' + fmtDate(t.date) + '(' + t.dow + ') ' + t.time + '\n' +
+         '· 장소 : ' + (t.place || '추후 안내') +
+         (t.point !== '' && t.point != null ? '\n· 상점 : ' + t.point + '점' : '') +
+         (t.note ? '\n· 준비 : ' + t.note : '');
+}
+
+function shareTicket() {
+  var txt = ticketText();
+  if (!txt) { toast('공유할 내용이 없습니다.'); return; }
+  if (navigator.share) {
+    navigator.share({ title: '봉사활동 신청 완료', text: txt }).catch(function () {});
+  } else {
+    copyText(txt);
+  }
+}
+
+function copyText(txt) {
+  var ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('신청 내용을 복사했습니다.'); }
+  catch (e) { toast('복사에 실패했습니다.'); }
+  document.body.removeChild(ta);
+}
+
+function backToForm() {
+  hide('view-done');
+  show('view-form');
+  selAct = '';
+  $('chk-ok').checked = false;
+  refreshData();
+  refreshSubmit();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelFromDone() {
+  if (!lastTicket) return;
+  if (!confirm('신청을 취소할까요?\n\n' + lastTicket.actName)) return;
+  callApi({ action: 'cancel', sid: lastTicket.sid, name: lastTicket.name, act: lastTicket.actId })
+    .then(function (res) {
+      if (!res || !res.ok) { toast((res && res.msg) || '취소에 실패했습니다.'); return; }
+      toast('신청이 취소되었습니다.');
+      lastTicket = null;
+      backToForm();
+    }).catch(function (e) { toast(e.message); });
+}
+
+/* ---------------- 내 신청 내역 ---------------- */
+function openMine() {
+  $('m-sid').value = ($('in-sid').value || '').trim();
+  $('m-name').value = ($('in-name').value || '').trim();
+  $('mine-result').innerHTML = '';
+  showOv('ov-mine');
+}
+
+function loadMine() {
+  var sid = ($('m-sid').value || '').trim().replace(/[^0-9]/g, '');
+  var name = ($('m-name').value || '').trim();
+  if (!sid || !name) { toast('학번과 이름을 모두 입력해 주세요.'); return; }
+  $('mine-result').innerHTML = '<div class="loading"><div class="spin"></div>조회 중…</div>';
+  callApi({ action: 'mystatus', sid: sid, name: name }).then(function (res) {
+    if (!res || !res.ok) { $('mine-result').innerHTML = '<div class="err">' + escapeHtml((res && res.msg) || '조회 실패') + '</div>'; return; }
+    if (!res.list.length) {
+      $('mine-result').innerHTML = '<div class="empty">신청 내역이 없습니다.<br>학번과 이름을 다시 확인해 주세요.</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < res.list.length; i++) {
+      var a = res.list[i];
+      html += '<div class="mine">' +
+                '<div class="mt">' + escapeHtml(a.actName) + '</div>' +
+                '<div class="mm">' + escapeHtml(fmtDate(a.date)) + '(' + escapeHtml(a.dow) + ') ' + escapeHtml(a.time) + '<br>' +
+                  '📍 ' + escapeHtml(a.place || '추후 안내') +
+                  (a.point !== '' && a.point != null ? ' · ⭐ 상점 ' + escapeHtml(a.point) + '점' : '') + '</div>' +
+                '<button type="button" class="btn danger sm" style="margin-top:10px" ' +
+                  'onclick="cancelMine(\'' + escapeHtml(a.sid) + '\',\'' + escapeHtml(a.name) + '\',\'' + escapeHtml(a.actId) + '\')">이 신청 취소하기</button>' +
+              '</div>';
+    }
+    $('mine-result').innerHTML = html;
+  }).catch(function (e) {
+    $('mine-result').innerHTML = '<div class="err">' + escapeHtml(e.message) + '</div>';
+  });
+}
+
+function cancelMine(sid, name, actId) {
+  if (!confirm('이 신청을 취소할까요?')) return;
+  callApi({ action: 'cancel', sid: sid, name: name, act: actId }).then(function (res) {
+    if (!res || !res.ok) { toast((res && res.msg) || '취소 실패'); return; }
+    toast('취소되었습니다.');
+    loadMine();
+    refreshData();
+  }).catch(function (e) { toast(e.message); });
+}
+
+/* ---------------- PWA ---------------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
