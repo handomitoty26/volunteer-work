@@ -1,14 +1,17 @@
 /* 기숙사 봉사활동·캠페인 신청 — 서비스워커
    ※ 파일을 고칠 때마다 아래 CACHE 뒤 숫자를 반드시 올려주세요. (예: v1 → v2) */
-var CACHE = 'bongsa-v1';
+var CACHE = 'bongsa-v2';
 
 var SHELL = [
   './',
   './index.html',
   './admin.html',
   './manifest.json',
+  './manifest-admin.json',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/admin-192.png',
+  './icons/admin-512.png'
 ];
 
 self.addEventListener('install', function (e) {
